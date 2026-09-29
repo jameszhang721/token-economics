@@ -1,0 +1,9 @@
+# corpora 靠脚本复现,不入库(体积大)
+corpora/*.txt
+results/*.csv
+results/*.png
+
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store

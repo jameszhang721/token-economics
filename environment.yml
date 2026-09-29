@@ -1,0 +1,23 @@
+name: token-econ
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  # PyTorch with CUDA — adjust pytorch-cuda version to your driver (11.8 or 12.1)
+  - pytorch
+  - pytorch-cuda=12.1
+  - numpy
+  - pandas
+  - matplotlib
+  - zstandard
+  - tqdm
+  - pip:
+      - tiktoken
+      - transformers>=4.44
+      - tokenizers>=0.20
+      - datasets>=2.20
+      - sentencepiece
+      - accelerate
