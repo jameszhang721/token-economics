@@ -16,6 +16,26 @@ python -c "import torch; print('CUDA:', torch.cuda.is_available(), torch.cuda.ge
 
 > `pytorch-cuda=12.1` 需匹配你的驱动。驱动较老改成 `11.8`;`nvidia-smi` 右上角 CUDA Version 是上限。
 
+### 在 NVIDIA 机器上复现(模型计算在这里跑)
+
+本仓库的开发/采样可在任意机器完成;**算 BPB 需要 NVIDIA GPU**。在 GPU 机器上:
+
+```bash
+git clone https://github.com/zhangjiabao-nudt/token-economics.git
+cd token-economics
+conda env create -f environment.yml && conda activate token-econ
+
+# 必须看到 CUDA: True
+python -c "import torch; print('CUDA:', torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+
+python -m src.metrics --selftest       # 纯数学,先确认尺子可用
+python scripts/download_corpora.py     # 采样六语料(可在任意机器先跑)
+python scripts/compression_vs_model.py # GPU:model BPB 应 < zstd
+```
+
+`src/metrics.py` 会自动选 `cuda`(可用时)否则 `cpu` —— 无需改代码。
+若 `CUDA: False`,检查 `nvidia-smi` 是否可用、`pytorch-cuda` 版本是否匹配驱动。
+
 ## 第 0 周:先造尺子(照这个顺序跑)
 
 ```bash
