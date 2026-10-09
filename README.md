@@ -21,7 +21,7 @@ python -c "import torch; print('CUDA:', torch.cuda.is_available(), torch.cuda.ge
 本仓库的开发/采样可在任意机器完成;**算 BPB 需要 NVIDIA GPU**。在 GPU 机器上:
 
 ```bash
-git clone https://github.com/zhangjiabao-nudt/token-economics.git
+git clone https://github.com/jameszhang721/token-economics.git
 cd token-economics
 conda env create -f environment.yml && conda activate token-econ
 
@@ -35,6 +35,51 @@ python scripts/compression_vs_model.py # GPU:model BPB 应 < zstd
 
 `src/metrics.py` 会自动选 `cuda`(可用时)否则 `cpu` —— 无需改代码。
 若 `CUDA: False`,检查 `nvidia-smi` 是否可用、`pytorch-cuda` 版本是否匹配驱动。
+
+## 访问不了 HuggingFace 怎么办
+
+国内网络常连不上 `huggingface.co`。三个脚本都已内置 **HF 镜像**支持,默认走 `hf-mirror.com`,
+无需手动设环境变量。`src/hf_config.py` 在 import 库之前设好 `HF_ENDPOINT`。
+
+**方案 A(默认,推荐):hf-mirror.com 镜像**
+```bash
+python scripts/download_corpora.py        # 默认即用镜像
+python scripts/compression_vs_model.py
+```
+需要切回官方或自定义时:
+```bash
+python scripts/download_corpora.py --mirror official            # 走 huggingface.co
+python scripts/download_corpora.py --mirror https://your-url    # 自定义端点
+```
+或全局设一次(对所有脚本和手动下载都生效):
+```bash
+# PowerShell
+$env:HF_ENDPOINT = "https://hf-mirror.com"
+# bash
+export HF_ENDPOINT=https://hf-mirror.com
+```
+装了 `huggingface_hub` 后还可用镜像版 CLI 预下载模型:
+```bash
+pip install -U huggingface_hub
+HF_ENDPOINT=https://hf-mirror.com huggingface-cli download Qwen/Qwen2.5-0.5B
+```
+
+**方案 B:ModelScope(魔搭,阿里)—— 模型走这条最稳**
+Qwen 系列在魔搭有官方镜像,`modelscope.cn` 国内直连快。模型名换成魔搭 ID:
+```bash
+pip install modelscope
+python scripts/compression_vs_model.py --model Qwen/Qwen2.5-0.5B --mirror official
+# 或先从魔搭下载到本地,再用本地路径:
+modelscope download --model Qwen/Qwen2.5-0.5B --local_dir ./models/qwen2.5-0.5b
+python scripts/compression_vs_model.py --model ./models/qwen2.5-0.5b --mirror official
+```
+
+**方案 C:语料绕开 HF —— 直接下维基原始 dump**
+`dumps.wikimedia.org` 国内可直连。要彻底不依赖 HF,可改成从维基 dump 采样
+(脚本已支持 `--source wikipedia`;若镜像也慢,手动下 dump 后本地解析)。
+
+> Llama-3 tokenizer 是 gated repo,镜像也需授权 token。跑不了就先跳过那一列,
+> cl100k(tiktoken,不走 HF)和 Qwen2.5 两列不受影响。
 
 ## 第 0 周:先造尺子(照这个顺序跑)
 

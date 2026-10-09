@@ -11,6 +11,10 @@
 import argparse
 import os
 import random
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from src.hf_config import setup_hf_endpoint, report as hf_report  # noqa: E402
 
 # zh 中文, en 英文, ar 阿拉伯语, fi 芬兰语, tr 土耳其语, ja 日语
 # —— 形态丰富(fi/tr)和非拉丁(zh/ar/ja)是 fertility 分歧最大的地方
@@ -70,7 +74,13 @@ def main():
     ap.add_argument("--mb", type=int, default=10, help="每种语言的目标 MB 数")
     ap.add_argument("--source", choices=["wikipedia", "oscar"], default="wikipedia")
     ap.add_argument("--langs", nargs="+", default=LANGS)
+    ap.add_argument("--mirror", default="__unset__",
+                    help="HF 端点。默认走 hf-mirror.com;传 official 用官方;或给自定义 URL")
     args = ap.parse_args()
+
+    endpoint = None if args.mirror == "official" else args.mirror
+    setup_hf_endpoint(endpoint)
+    hf_report()
 
     random.seed(SEED)
     os.makedirs(OUT_DIR, exist_ok=True)

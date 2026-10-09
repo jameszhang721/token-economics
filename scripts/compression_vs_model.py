@@ -20,6 +20,7 @@ import sys
 import zstandard as zstd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from src.hf_config import setup_hf_endpoint, report as hf_report  # noqa: E402
 from src.metrics import bpb, entropy  # noqa: E402
 
 CORPORA = os.path.join(os.path.dirname(__file__), "..", "corpora")
@@ -58,7 +59,12 @@ def main():
     ap.add_argument("--langs", nargs="+", default=["en", "zh"])
     ap.add_argument("--model", default=DEFAULT_MODEL)
     ap.add_argument("--sample-kb", type=int, default=512)
+    ap.add_argument("--mirror", default="__unset__",
+                    help="HF 端点。默认 hf-mirror.com;official 用官方;或自定义 URL")
     args = ap.parse_args()
+
+    setup_hf_endpoint(None if args.mirror == "official" else args.mirror)
+    hf_report()
 
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer

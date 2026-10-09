@@ -19,6 +19,7 @@ import sys
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from src.hf_config import setup_hf_endpoint, report as hf_report  # noqa: E402
 from src.metrics import fertility  # noqa: E402
 
 CORPORA = os.path.join(os.path.dirname(__file__), "..", "corpora")
@@ -68,7 +69,12 @@ def main():
     ap.add_argument("--price-per-1m", type=float, default=0.15,
                     help="每百万 token 的美元单价(用于成本折算)")
     ap.add_argument("--langs", nargs="+", default=LANGS)
+    ap.add_argument("--mirror", default="__unset__",
+                    help="HF 端点。默认 hf-mirror.com;official 用官方;或自定义 URL")
     args = ap.parse_args()
+
+    setup_hf_endpoint(None if args.mirror == "official" else args.mirror)
+    hf_report()
 
     os.makedirs(RESULTS, exist_ok=True)
 
