@@ -27,9 +27,12 @@ RESULTS = os.path.join(os.path.dirname(__file__), "..", "results")
 LANGS = ["zh", "en", "ar", "fi", "tr", "ja"]
 
 # 三种代表性 tokenizer。cl100k 用 tiktoken;另两个用 HF。
+# Llama-3 用 NousResearch 的非门控镜像(tokenizer 与 meta-llama 官方完全一致,
+# 但无需授权/token)。若你已拿到 meta-llama 官方访问权,可换回下面注释那行。
 TOKENIZERS = {
     "cl100k (GPT-4)": ("tiktoken", "cl100k_base"),
-    "Llama-3 (128k)": ("hf", "meta-llama/Meta-Llama-3-8B"),
+    "Llama-3 (128k)": ("hf", "NousResearch/Meta-Llama-3-8B"),
+    # "Llama-3 (128k)": ("hf", "meta-llama/Meta-Llama-3-8B"),  # gated,需授权
     "Qwen2.5 (151k)": ("hf", "Qwen/Qwen2.5-0.5B"),
 }
 
