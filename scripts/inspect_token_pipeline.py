@@ -50,7 +50,7 @@ def check_token_limit(token_ids, config_limit, max_tokens, truncate):
         raise ValueError("--max-tokens 必须大于 0")
     if config_limit is None:
         raise ValueError("模型 config 未声明 max_position_embeddings，无法验证上下文上限")
-    if not isinstance(config_limit, int) or config_limit < 1:
+    if isinstance(config_limit, bool) or not isinstance(config_limit, int) or config_limit < 1:
         raise ValueError("模型配置的上下文上限无效: {}".format(config_limit))
     limit = min(max_tokens, config_limit)
     if limit < max_tokens:
