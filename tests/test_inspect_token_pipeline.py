@@ -59,7 +59,7 @@ class LimitTests(unittest.TestCase):
                          [1, 2])
 
     def test_missing_or_invalid_limit_fails_closed(self):
-        for limit in (None, 0, -1, "unknown"):
+        for limit in (None, 0, -1, "unknown", True, False):
             with self.subTest(limit=limit), self.assertRaises(ValueError):
                 pipeline.check_token_limit([1], limit, 256, True)
         with self.assertRaisesRegex(ValueError, "必须大于 0"):
