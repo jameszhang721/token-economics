@@ -1,4 +1,4 @@
-name: token-econ
+name: token-econ-py39-cu118
 channels:
   - pytorch
   - nvidia

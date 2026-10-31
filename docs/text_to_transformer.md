@@ -22,12 +22,11 @@ token（便于观察的片段；不保证是完整的词）
 
 ## 如何运行：先不下载模型，再按需加载模型
 
-在仓库根目录启动 conda 环境。首次在 NVIDIA 机器上按仓库根目录 `environment.yml` 创建环境，版本为 Python 3.9 + PyTorch CUDA 11.8；旧环境不会因为修改配置文件而自动更新，若已有旧版 `token-econ`，先在 README 查看用新名字创建环境的命令：
+先切换到**你自己检出的仓库根目录**（即包含 `environment.yml` 的目录），再运行以下命令；若尚未检出，可先运行 `git clone https://github.com/jameszhang721/token-economics.git` 和 `cd token-economics`。首次在 NVIDIA 机器上创建 Python 3.9 + PyTorch CUDA 11.8 环境：
 
-```powershell
-cd D:\zhangjiabao1\Desktop\zhangjiabao\idea-project\token-economics
-conda env create -f environment.yml
-conda activate token-econ
+```bash
+conda env create -f environment.yml   # 创建 token-econ-py39-cu118
+conda activate token-econ-py39-cu118
 
 # 第一阶段：只下载 tokenizer 文件（不下载模型权重，不需要 GPU）
 python scripts/inspect_token_pipeline.py --stage tokenizer --text "你好，token！"
@@ -36,7 +35,7 @@ python scripts/inspect_token_pipeline.py --stage tokenizer --text "你好，toke
 python scripts/inspect_token_pipeline.py --stage model --text "你好，token！"
 ```
 
-默认端点为 `https://hf-mirror.com`，且尊重事先设置的 `HF_ENDPOINT`。也可用 `--mirror official` 切回官方，或用 `--model D:\模型目录` 读取已经下载到本地的同一模型；完全离线再加 `--local-only`。模型运行会自动选择 CUDA（有 NVIDIA GPU 时），否则用 CPU；第二阶段在 CPU 上也能运行，只是更慢。**Tokenizer 与模型必须来自同一模型目录/版本**，否则 ID 与向量表的行可能对不上。`--stage tokenizer` 仍需要 tokenizer 文件，首次运行可能联网。
+已有同名新环境时跳过 `conda env create`，直接激活；旧版 `token-econ` 不会因为修改配置文件而自动更新，版本检查见 [README 的环境说明](../README.md)。默认端点为 `https://hf-mirror.com`，且尊重事先设置的 `HF_ENDPOINT`。也可用 `--mirror official` 切回官方，或用 `--model ./models/qwen2.5-0.5b` 读取已下载到本地的同一模型；完全离线再加 `--local-only`。模型运行会自动选择 CUDA（有 NVIDIA GPU 时），否则用 CPU；第二阶段在 CPU 上也能运行，只是更慢。**Tokenizer、配置与权重必须来自同一模型目录/版本**：脚本在线时解析一次不可变 commit SHA，离线时共用缓存快照路径；可以用 `--revision` 指定远端修订，但本地目录不能和此选项一起使用。模型阶段默认最多接受 256 个 token，超出会在加载权重前报告数量并拒绝；只有显式加 `--truncate` 才会取前缀。增大预算可用 `--max-tokens`，但不能超过模型配置的上下文上限；若配置缺少上限，脚本会拒绝模型阶段，而不是猜测一个上限。提高预算也会增加内存/显存开销。`--stage tokenizer` 仍需要 tokenizer 文件，首次运行可能联网。
 
 下文第 2～3 步的四个 ID 是在本机用 Qwen2.5-0.5B 的 tokenizer **实际运行得到的**。其他输入和不同版本的 tokenizer 可能产生不同结果；向量数值、模型输出维度及概率尚未在本文实测，须运行第二阶段查看。
 
@@ -58,17 +57,25 @@ print(len(text.encode("utf-8"))) # 原文占多少 UTF-8 字节
 
 Tokenizer 在模型之外运行。它读取配套的词表/合并规则，将文本编码为若干**离散单元**。可把 token 直观地理解成“这个 tokenizer 认识的一块文本”，但它未必等于一个完整单词：可能是词的一部分、标点、空格前缀，或者字节级片段。
 
-```python
-from transformers import AutoTokenizer
+下面的 Python 代码块**按顺序在同一 Python 会话中运行**（工作目录为仓库根目录）。如果只想观察分词而不加载模型，优先运行前述 `--stage tokenizer` 命令；手动代码会在第 3 步加载权重。先配置镜像并锁定一份模型修订，让后续 tokenizer、配置和权重使用同一来源：
 
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
+```python
+from src.hf_config import setup_hf_endpoint
+setup_hf_endpoint()  # 在导入 transformers / huggingface_hub 前配置镜像
+from scripts.inspect_token_pipeline import check_token_limit, resolve_model_source
+from transformers import AutoConfig, AutoTokenizer
+
+model_source, load_kwargs = resolve_model_source("Qwen/Qwen2.5-0.5B")
+tokenizer = AutoTokenizer.from_pretrained(model_source, **load_kwargs)
 text = "你好，token！"
 ids = tokenizer.encode(text, add_special_tokens=False)
+config = AutoConfig.from_pretrained(model_source, **load_kwargs)
+ids = check_token_limit(ids, getattr(config, "max_position_embeddings", None), 256, False)
 pieces = tokenizer.convert_ids_to_tokens(ids)
 print(list(zip(pieces, ids)))
 ```
 
-上面示例为解释 API；配套脚本已经在导入 `transformers` **之前**配置了镜像，所以网络受限时请优先运行脚本。本机在 `--stage tokenizer` 下实际得到：
+`check_token_limit` 在加载权重前检查输入数量；这里超出 256（或模型配置上限）会报错，不会隐式截断。需要处理长输入时，改用配套脚本的 `--truncate` 明确选择截断，并以脚本展示的前缀 ID 为准。
 
 | 位置 | 词表内部表示（原样） | token ID | 单独解码 |
 |---:|---|---:|---|
@@ -92,17 +99,26 @@ print(tokenizer.decode(ids))
 Tokenizer 的词表建立“单元 ↔ 整数编号”的约定。一次输入编码完成后，在程序内表现为整数列表：
 
 ```python
-# 上面已用该样本实际运行，得到如下 ID；其他输入需由 tokenizer.encode 重新生成。
-ids = [108386, 3837, 5839, 6313]
+# 沿用第 2 步从同一个 tokenizer 编码得到的 ids，不要覆盖为示例中的固定 ID。
+print(ids)  # 本文记录的历史示例是 [108386, 3837, 5839, 6313]
 ```
 
 交给 PyTorch 模型时，它们通常构成整数张量，形状 `[batch_size, seq_len]`：
 
 ```python
 import torch
+from transformers import AutoModelForCausalLM
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+dtype = torch.float16 if device.type == "cuda" else torch.float32
+model = AutoModelForCausalLM.from_pretrained(
+    model_source, torch_dtype=dtype, **load_kwargs
+).to(device).eval()
 input_ids = torch.tensor([ids], dtype=torch.long, device=device)
 # 一段输入：batch_size = 1，seq_len = 这段输入的 token 数
 ```
+
+在相同 Python 会话中继续运行下面的查表和前向代码；若重启会话，需要先按顺序重新运行前面的代码块。
 
 **存储位置要区分**：
 
