@@ -8,25 +8,18 @@
 
 ## 环境（Python 3.9 + PyTorch CUDA 11.8）
 
-在装有 NVIDIA GPU、且驱动支持 CUDA 11.8 的机器上：
+在装有 NVIDIA GPU、且驱动支持 CUDA 11.8 的机器上，先进入**自己检出的仓库根目录**再运行；若尚未克隆，先运行下方“在 NVIDIA 机器上复现”的 `git clone` 和 `cd`：
 
 ```bash
 nvidia-smi                                # 先确认驱动和 GPU 可用
-conda env create -f environment.yml
-conda activate token-econ
+conda env create -f environment.yml      # 新环境名：token-econ-py39-cu118
+conda activate token-econ-py39-cu118
 python -c "import sys, torch; print(sys.version); print(torch.__version__, torch.version.cuda); print('CUDA:', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '无 NVIDIA GPU')"
 ```
 
 预期 Python 为 `3.9.x`，`torch.version.cuda` 为 `11.8`，GPU 机器上 `torch.cuda.is_available()` 为 `True`。`nvidia-smi` 显示的 CUDA Version 是**驱动能支持的最高 CUDA 版本**，并非本环境实际使用的 CUDA 版本；GPU 驱动需要足够新。Windows 无 NVIDIA GPU 的本机上，即使安装了 CUDA 版 PyTorch，`torch.cuda.is_available()` 仍会是 `False`。
 
-若本机已经有旧的 `token-econ`（Python 3.11 / CUDA 12.1），**创建新环境，不要覆盖旧环境**：
-
-```bash
-conda env create -n token-econ-py39-cu118 -f environment.yml
-conda activate token-econ-py39-cu118
-```
-
-只修改 `environment.yml` 不会自动改变已经建好的环境；以下其他命令均在**当前激活的环境**里运行。
+新环境名刻意与旧版 `token-econ`（Python 3.11 / CUDA 12.1）区分。**已有 `token-econ-py39-cu118` 时不要再次运行 `conda env create`**，直接激活新环境；若要重建，先自行确认要如何处理旧环境。修改 `environment.yml` 不会自动升级已建环境。以下命令均在当前激活的环境中运行。可用 `python -m unittest discover -s tests -v` 检查教学脚本的离线回归测试。
 
 ### 在 NVIDIA 机器上复现(模型计算在这里跑)
 
@@ -35,7 +28,7 @@ conda activate token-econ-py39-cu118
 ```bash
 git clone https://github.com/jameszhang721/token-economics.git
 cd token-economics
-conda env create -f environment.yml && conda activate token-econ
+conda env create -f environment.yml && conda activate token-econ-py39-cu118
 
 # 必须看到 Python 3.9、PyTorch CUDA 11.8 且 CUDA: True
 python -c "import sys, torch; print(sys.version); print('PyTorch CUDA:', torch.version.cuda, '可用:', torch.cuda.is_available())"
