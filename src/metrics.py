@@ -4,6 +4,7 @@
 """
 import math
 from collections import Counter
+from typing import Optional
 
 
 def entropy(corpus: str, ngram_order: int = 1) -> float:
@@ -31,8 +32,8 @@ def entropy(corpus: str, ngram_order: int = 1) -> float:
     return H(ngrams) - H(context)
 
 
-def bpb(model, tokenizer, text: str, device: str | None = None,
-        max_length: int = 2048, stride: int | None = None) -> float:
+def bpb(model, tokenizer, text: str, device: Optional[str] = None,
+        max_length: int = 2048, stride: Optional[int] = None) -> float:
     """模型在 text 上的 bits per byte。
 
     BPB = 总交叉熵(nats) / (ln2 × UTF-8 字节数)

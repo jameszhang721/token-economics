@@ -4,20 +4,22 @@ channels:
   - nvidia
   - conda-forge
 dependencies:
-  - python=3.11
+  - python=3.9
   - pip
-  # PyTorch with CUDA — adjust pytorch-cuda version to your driver (11.8 or 12.1)
-  - pytorch
-  - pytorch-cuda=12.1
-  - numpy
+  # PyTorch CUDA 11.8 build; pytorch-mutex prevents a CPU-only PyTorch build.
+  - pytorch=2.3.1
+  - pytorch-cuda=11.8
+  - pytorch-mutex=1.0=cuda
+  - numpy=1.26.4
   - pandas
   - matplotlib
   - zstandard
   - tqdm
   - pip:
-      - tiktoken
-      - transformers>=4.44
-      - tokenizers>=0.20
-      - datasets>=2.20
-      - sentencepiece
-      - accelerate
+      - tiktoken==0.7.0
+      - transformers==4.44.2
+      - tokenizers==0.19.1
+      - datasets==2.21.0
+      - huggingface-hub==0.25.2
+      - sentencepiece==0.2.0
+      - accelerate==0.34.2
