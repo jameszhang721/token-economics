@@ -4,29 +4,41 @@
 
 所有结论只靠三把尺子说话:**BPB**(bits per byte)、**fertility**(词→token 数)、**overhead gap**(BPB − 经验熵)。
 
-## 环境(conda + GPU)
+入门配套材料：[原始文本 → token → ID → embedding → Transformer（逐步讲解与运行示例）](docs/text_to_transformer.md)。
+
+## 环境（Python 3.9 + PyTorch CUDA 11.8）
+
+在装有 NVIDIA GPU、且驱动支持 CUDA 11.8 的机器上：
 
 ```bash
+nvidia-smi                                # 先确认驱动和 GPU 可用
 conda env create -f environment.yml
 conda activate token-econ
-
-# 验证 GPU 可用
-python -c "import torch; print('CUDA:', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')"
+python -c "import sys, torch; print(sys.version); print(torch.__version__, torch.version.cuda); print('CUDA:', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '无 NVIDIA GPU')"
 ```
 
-> `pytorch-cuda=12.1` 需匹配你的驱动。驱动较老改成 `11.8`;`nvidia-smi` 右上角 CUDA Version 是上限。
+预期 Python 为 `3.9.x`，`torch.version.cuda` 为 `11.8`，GPU 机器上 `torch.cuda.is_available()` 为 `True`。`nvidia-smi` 显示的 CUDA Version 是**驱动能支持的最高 CUDA 版本**，并非本环境实际使用的 CUDA 版本；GPU 驱动需要足够新。Windows 无 NVIDIA GPU 的本机上，即使安装了 CUDA 版 PyTorch，`torch.cuda.is_available()` 仍会是 `False`。
+
+若本机已经有旧的 `token-econ`（Python 3.11 / CUDA 12.1），**创建新环境，不要覆盖旧环境**：
+
+```bash
+conda env create -n token-econ-py39-cu118 -f environment.yml
+conda activate token-econ-py39-cu118
+```
+
+只修改 `environment.yml` 不会自动改变已经建好的环境；以下其他命令均在**当前激活的环境**里运行。
 
 ### 在 NVIDIA 机器上复现(模型计算在这里跑)
 
-本仓库的开发/采样可在任意机器完成;**算 BPB 需要 NVIDIA GPU**。在 GPU 机器上:
+本仓库的开发/采样可在任意机器完成；若希望用 CUDA 加速模型计算，需要 NVIDIA GPU。在 GPU 机器上：
 
 ```bash
 git clone https://github.com/jameszhang721/token-economics.git
 cd token-economics
 conda env create -f environment.yml && conda activate token-econ
 
-# 必须看到 CUDA: True
-python -c "import torch; print('CUDA:', torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+# 必须看到 Python 3.9、PyTorch CUDA 11.8 且 CUDA: True
+python -c "import sys, torch; print(sys.version); print('PyTorch CUDA:', torch.version.cuda, '可用:', torch.cuda.is_available())"
 
 python -m src.metrics --selftest       # 纯数学,先确认尺子可用
 python scripts/download_corpora.py     # 采样六语料(可在任意机器先跑)

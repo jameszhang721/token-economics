@@ -15,11 +15,12 @@
 已设过 HF_ENDPOINT 环境变量时尊重你的设置,不覆盖。
 """
 import os
+from typing import Optional
 
 DEFAULT_MIRROR = "https://hf-mirror.com"
 
 
-def setup_hf_endpoint(endpoint: str | None = "__unset__") -> str | None:
+def setup_hf_endpoint(endpoint: Optional[str] = "__unset__") -> Optional[str]:
     """设置 HF_ENDPOINT。返回最终生效的端点。
 
     endpoint=None           -> 清除,用官方
