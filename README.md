@@ -4,7 +4,9 @@
 
 所有结论只靠三把尺子说话:**BPB**(bits per byte)、**fertility**(词→token 数)、**overhead gap**(BPB − 经验熵)。
 
-入门配套材料：[原始文本 → token → ID → embedding → Transformer（逐步讲解与运行示例）](docs/text_to_transformer.md)。
+入门配套材料：[原始文本 → token → ID → embedding → Transformer（逐步讲解与运行示例）](docs/text_to_transformer.md)，以及[向量数据库入门：从相似度检索到 RAG（离线可运行示例）](docs/vector_database.md)。后者可直接运行 `python scripts/vector_search_demo.py`，不需联网或 GPU。
+
+完成 token 基础后，按[向量化 → RAG → Agent 进阶任务路线与分阶段验收指标](docs/learning_roadmap.md)继续学习。该路线是后续任务规划，**不是**本仓库已实现的语义检索或 Agent 功能；原八周 token 编码研究保持不变。
 
 ## 环境（Python 3.9 + PyTorch CUDA 11.8）
 
