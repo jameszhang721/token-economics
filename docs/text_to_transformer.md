@@ -210,7 +210,7 @@ Decoder-only LLM 使用**因果注意力**：位置 `i` 只能利用当前位置
 
 ## 与向量数据库 / RAG 的关系
 
-RAG 中另有一条可选流程：`文档 → 独立 embedding 模型 → 文档向量 → 向量数据库`。提问时将问题编码成向量、检索相关文档，取回**原文**拼到提示词中；LLM 然后仍按本页描述的 `文本 → token ID → 模型内部 embedding → Transformer` 运行。一般情况下，检索库里的文档向量**不会被当作 token ID 或 token embedding 直接喂进 LLM**。
+RAG 中另有一条可选流程：`文档 → 独立 embedding 模型 → 文档向量 → 向量数据库`。提问时将问题编码成向量、检索相关文档，取回**原文**拼到提示词中；LLM 然后仍按本页描述的 `文本 → token ID → 模型内部 embedding → Transformer` 运行。一般情况下，检索库里的文档向量**不会被当作 token ID 或 token embedding 直接喂进 LLM**。想自己动手实现小型检索器并理解向量数据库，可继续阅读[向量数据库入门与离线示例](vector_database.md)。
 
 ## 自测（看完代码后回答）
 

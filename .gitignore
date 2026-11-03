@@ -2,6 +2,7 @@
 corpora/*.txt
 results/*.csv
 results/*.png
+results/vector_index*.json
 
 __pycache__/
 *.pyc
